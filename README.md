@@ -1,45 +1,120 @@
-# UPSC Zone AI — landing page
-React + Vite + GSAP (ScrollTrigger). No other runtime dependencies.
+# UPSC Zone AI
 
-    npm install
-    npm run dev      # http://localhost:5173
-    npm run build
+**An editorial, scroll-driven landing page for an AI-powered UPSC Civil Services preparation platform.**
 
-- Hero: `src/components/Hero.jsx` — layered PNGs (parchment, circle, parliament, student), one GSAP entrance timeline + scroll-scrubbed parallax; skipped when `prefers-reduced-motion`.
-- Assets & provenance: `public/assets/ASSET_INVENTORY.md`.
-- Subject photos, lion capital, avatars and India Gate are **placeholders cropped from the reference** (`public/assets/placeholders/`). Replace files in place, keeping filenames.
+🌐 **Live demo:** https://upsc-zone-ai-bay.vercel.app/
+💻 **Source code:** [Pranay-Pandurang-Patil/ExamPrep-Demo-UI](https://github.com/Pranay-Pandurang-Patil/ExamPrep-Demo-UI)
 
-## Phase 4 — hero scroll sequence
-`Hero.jsx`: one pinned GSAP timeline (`end: '+=2200'`, `scrub: 0.8`) — texture + outlines → parliament (vertical mask) → circle (radial mask) → student (vertical mask) → ground/labels/scroll cue → hold. Pin releases into the trust strip. Desktop (>820px) and motion-OK only; mobile/reduced-motion get the finished scene. Tune pacing via `end` and the timeline positions. Sections below use one-time reveals (`data-reveal`) in `App.jsx`.
+---
 
-## Phase 5 — hero layer architecture (`src/components/hero/`)
-- `layers.config.js` — one place for each layer's position, size and z-index (`Z` map). Edit here to nudge the composition.
-- `HeroLayers.jsx` — ArchivalLayer, OutlineLayer, VermilionCircleLayer, ArchitectureLayer, AspirantForegroundLayer, GroundLayer, AnnotationLayer, EditorialLabels, ScrollIndicator.
-- `HeroCopy.jsx` (HeroCopy + HeroActions), `useHeroTimeline.js` (Phase 4 GSAP), `HeroSection.jsx` (assembly; Nav now lives inside the hero so it stays during the pin).
-- Layers are absolutely positioned in a fixed-aspect container; width only, height auto, so nothing stretches.
-- No FoliageLayer: no foliage asset exists. Add a config entry + component when you have a transparent PNG.
+## About
 
-## Phase 6 — content & structure
-- All editable copy/data: `src/data/content.js` (nav links, trust metrics, testimonials, footer, `STORY_VIDEO`).
-- **Placeholders, not facts:** trust metrics (`00%`, `0.0/5`), the trust excerpt and the three testimonials are sample content and are labelled as such. Replace with verified, permissioned data before launch.
-- "Watch Our Story" opens an accessible dialog (Esc/backdrop/close). Set `STORY_VIDEO` to an mp4 path to embed a real video.
-- Nav: anchor links to `#top #features #resources #stories #about`; mobile menu has `aria-expanded`, Esc-to-close.
-- Anchor ids: `#features`, `#resources` (subjects), `#purpose`, `#stories`, `#cta`, `#about` (footer).
+UPSC aspirants prepare for years, often with scattered tools. UPSC Zone AI is a concept for one calm place where **AI mock tests, current affairs, smart notes, previous-year questions, a personalised study plan and mentorship** come together.
 
-## Phase 7 — responsive
-| Range | Hero behaviour |
+This repository is the **frontend-only homepage** for that product. It is built as a real, responsive React website, not an image mockup, and focuses on visual storytelling and engineering quality.
+
+## Highlights
+
+- **Cinematic hero:** the artwork assembles layer by layer as you scroll (archival texture, then Parliament, then the vermilion circle, then the aspirant, then the ground and labels), using a pinned, scrubbed GSAP ScrollTrigger timeline. It works in both scroll directions.
+- **Responsive by design:** full pinned animation on desktop, a shorter pin on tablets, and a recomposed, unpinned hero on phones.
+- **Accessibility:**
+  - It respects `prefers-reduced-motion`: no pinning, and the finished scene shows immediately.
+  - It has a skip link, visible keyboard focus, semantic landmarks, and an accessible mobile menu and dialog.
+- **Performance:**
+  - Images are WebP with responsive `srcset`; the hero payload is about 440 KB, down from about 6 MB.
+  - Below-the-fold images are lazy-loaded with fixed dimensions to prevent layout shift.
+  - The hero waits for its assets to decode before animating.
+- **Native scrolling only:** no scroll hijacking.
+
+## Sections
+
+Hero → Trust strip → Features → Subjects → Purpose ("More Than a Career") → Testimonials → Closing CTA → Footer
+
+## Tech stack
+
+| | |
 |---|---|
-| ≥1181px (and ≥620px tall) | Full pinned assembly, `+=2200` |
-| 821–1180px (and ≥620px tall) | Rebalanced layout, shorter pin `+=1400`, quote/steps hidden |
-| ≤820px | Vertical recomposition, **no pin, no parallax**; brief one-time reveal (~1.5s) when the art scrolls into view |
-| `prefers-reduced-motion` | No pin, no assembly; finished hero shown, 0.4s opacity fade only |
-- Layer geometry: `pos` (desktop/tablet) and `mpos` (mobile) in `hero/layers.config.js`, applied as CSS variables.
-- Short desktop windows (<620px tall) skip the pin so the hero is never cut off.
-- Content never depends on animation: hidden states exist only while GSAP is running.
+| Framework | React 18 |
+| Build tool | Vite 5 |
+| Animation | GSAP + ScrollTrigger |
+| Styling | Hand-written CSS with design tokens (no Tailwind) |
+| Icons | Inline SVG |
+| Hosting | Vercel |
 
-## Phase 8 — performance & engineering quality
-- **Images → WebP, responsive.** Hero art is served as `-<w>.webp` pairs with `srcset`/`sizes` (config in `hero/layers.config.js`: `ws`, `sizes`; helpers `srcset()`/`fallback()`). Alpha is preserved. Hero payload ~6.3 MB → ~440 KB (desktop picks the larger candidate). Below-fold images are `loading="lazy"` with explicit `width`/`height` (no layout shift). Lossless sources are kept in `assets-src/` (not deployed); to re-export, resize/save as WebP and keep the `-<w>.webp` naming.
-- **Hero loads before it animates.** `hero/useAssetsReady.js` waits for every hero `<img>` to load + decode and for web fonts (4 s cap so a failed asset can never hide the page). Until then `html.js .hero:not(.is-ready)` keeps the art invisible; the GSAP timeline is only built afterwards (`useHeroTimeline(root, ready)`). `index.html` preloads the four hero images. Pin has `refreshPriority: 1` + a refresh so later reveal triggers measure correctly.
-- **A11y.** Skip link, `<main id="main">` now contains the closing CTA, `aria-labelledby` on sections, labelled scrollable subject list, meaningful alt text, focus ring recoloured on dark sections, reduced-motion CSS.
-- **No dead links.** Subject cards are plain articles (no destination yet); the inert testimonial arrows were removed; fake `#`/`example.com` footer links were removed. Add real ones in `src/data/content.js` (`FOOTER.legal`, `FOOTER.social`, Contact) and they appear automatically.
-- Re-run image export if you swap artwork; update `ASSET_INVENTORY.md`.
+## Run locally
+
+**Requirements:** Node.js 18 or newer, and npm.
+
+```bash
+# 1. Get the code
+git clone https://github.com/Pranay-Pandurang-Patil/ExamPrep-Demo-UI.git
+cd ExamPrep-Demo-UI          # if the project sits in a subfolder, cd into it
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the dev server
+npm run dev                  # http://localhost:5173
+```
+
+Other commands:
+
+```bash
+npm run build      # production build into /dist
+npm run preview    # serve the production build locally
+```
+
+If you downloaded the ZIP instead, unzip it, open a terminal in the project folder (the one containing `package.json`), and run steps 2 and 3.
+
+## Project structure
+
+```
+src/
+  App.jsx                    page assembly + section reveals
+  styles.css                 all styling (design tokens in :root)
+  data/content.js            editable copy: nav, metrics, testimonials, footer
+  components/
+    Nav.jsx, Sections.jsx, Footer.jsx, Icons.jsx
+    hero/                    layered hero + GSAP timeline
+      layers.config.js       position / size / z-index of every hero layer
+      useHeroTimeline.js     scroll-driven assembly logic
+      useAssetsReady.js      waits for images before animating
+public/assets/               optimised WebP images
+assets-src/                  lossless source images (not deployed)
+docs/DEVELOPMENT_NOTES.md    phase-by-phase build notes
+```
+
+## Customising
+
+- **Copy and data:** edit `src/data/content.js`.
+- **Hero composition:** edit `src/components/hero/layers.config.js`.
+- **Animation pacing:** edit the `end` distance and timeline positions in `useHeroTimeline.js`.
+- **Colours and type:** edit the tokens at the top of `src/styles.css`.
+
+## Deployment
+
+Deployed on Vercel with the Vite preset: build command `npm run build`, output directory `dist`. No environment variables are required.
+
+## Honest notes
+
+This is a **hackathon demo**, so some content is intentionally placeholder:
+
+- Trust metrics (`00%`, `0.0/5`), the trust quote, and the three testimonials are **clearly labelled sample content**, not real data.
+- Subject photos, the lion capital, India Gate and the avatars are placeholder crops, to be replaced with licensed imagery.
+- There is **no backend or authentication**. The CTAs scroll within the page. The AI features shown are the product concept, not working tools.
+
+## Roadmap
+
+- Real photography and licensed imagery
+- Sign-up / waitlist flow and backend
+- Subject detail pages
+- Scroll-aware navigation highlight
+- Verified metrics and real testimonials
+
+## Author
+
+**Pranay Patil** – [GitHub](https://github.com/Pranay-Pandurang-Patil)
+
+---
+
+*Built for a hackathon. Not affiliated with UPSC or any government body.*
