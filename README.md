@@ -113,7 +113,7 @@ This is a **hackathon demo**, so some content is intentionally placeholder:
 
 ## Author
 
-**Pranay Patil** – [GitHub](https://github.com/Pranay-Pandurang-Patil)
+**Pranay Patil** (CSE Student at KLS GIT Belgaum) – [GitHub](https://github.com/Pranay-Pandurang-Patil)
 
 ---
 
